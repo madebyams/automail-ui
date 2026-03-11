@@ -1,0 +1,6 @@
+add_subdirectory(config_factory)
+add_subdirectory(config_store)
+add_subdirectory(filesystem_service)
+add_subdirectory(main)
+add_subdirectory(mail_service)
+add_subdirectory(ui)
