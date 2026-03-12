@@ -1,14 +1,19 @@
-#include "ui.hh"
+#include "gui/gui.hh"
 
-#include "../../include/mail/config_factory.hh"
+#include "config/config.hh"
+#include "config/config_factory.hh"
 
 #include <nlohmann/json.hpp>
 #include <utility>
 #include <spdlog/spdlog.h>
 
+using app_config = config::config_t;
+using config_factory = config::factory;
+
+using namespace gui;
 using json = nlohmann::json;
 
-UI::UI(config config, const filesystem_service& filesystem_service, const mail_service& mail_service, const mail::config_store config_store)
+gui_t::gui_t(config config, const filesystem_service& filesystem_service, const mail_service& mail_service, const config_store& config_store)
     : config_(std::move(config)),
     filesystem_service_(filesystem_service),
     mail_service_(mail_service),
@@ -28,9 +33,9 @@ UI::UI(config config, const filesystem_service& filesystem_service, const mail_s
 
     this->window_.bind("saveImapConfig", [&](const std::string& request) {
         json config = json::parse<>(request);
-        mail::config mail_config = mail::config_factory::from_json(config);
+        app_config mail_config = config_factory::from_json(config);
         this->config_store_.save_config(mail_config);
-        this->mail_service_.reload_config();
+        this->mail_service_.get_client().reload();
 
         return "{}";
     });
@@ -41,7 +46,7 @@ UI::UI(config config, const filesystem_service& filesystem_service, const mail_s
 }
 
 
-void UI::display(std::string html_path) {
+void gui_t::display(std::string html_path) {
     spdlog::info("Displaying {}...", html_path);
     std::string html = filesystem_service_.get_file_content(html_path);
 
@@ -49,7 +54,7 @@ void UI::display(std::string html_path) {
     this->window_.run();
 }
 
-void UI::display(uint32_t server_port) {
+void gui_t::display(uint32_t server_port) {
     spdlog::info("Displaying at :{}...", server_port);
 
     this->window_.navigate("http://localhost:4200");

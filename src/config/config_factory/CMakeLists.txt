@@ -1,5 +1,5 @@
 add_library(config_factory
-    config_factory.cc
+        config_factory.cc
 )
 
 target_link_libraries(config_factory

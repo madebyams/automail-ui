@@ -1,8 +1,8 @@
-add_library(ui
-    ui.cc
+add_library(gui
+        gui.cc
 )
 
-target_link_libraries(ui PUBLIC
+target_link_libraries(gui PUBLIC
     nlohmann_json::nlohmann_json
     spdlog::spdlog
     webview::core

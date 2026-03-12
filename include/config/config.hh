@@ -7,8 +7,8 @@
 
 using json = nlohmann::json;
 
-namespace mail {
-    struct config {
+namespace config {
+    struct config_t {
         std::string hostname;
         uint32_t port;
         std::string username;

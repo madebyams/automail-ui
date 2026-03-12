@@ -5,8 +5,9 @@ add_executable(main
 target_link_libraries(main
     config_factory
     filesystem_service
+    imap_client
     mail_service
-    ui
+    gui
 
     spdlog::spdlog
 )

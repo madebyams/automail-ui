@@ -1,30 +1,32 @@
 #include <spdlog/spdlog.h>
 
 #include "filesystem_service.hh"
-#include "mail/config_store.hh"
+#include "config/config_store.hh"
 #include "mail/mail_service.hh"
-#include "mail/config_factory.hh"
-#include "ui.hh"
+#include "config/config_factory.hh"
+#include "mail/clients/imap_client.hh"
+#include "gui/gui.hh"
 
-using config_store = mail::config_store;
-using config_factory = mail::config_factory;
 
 int main() {
     spdlog::info("Starting automail ui...");
 
     filesystem_service fs;
-    config_store cs(config_factory::from_yaml("config.yml"), fs);
+
+    config::store cs(config::factory::from_yaml("config.yml"), fs);
+    mail::imap::client client(cs);
+
     mail_service mail_service_(
-        cs
+        client
     );
 
-    UI ui({
+    gui::gui_t gui({
         .width = 600,
         .height = 600,
         .title = "Automail"
     }, fs, mail_service_, cs);
 
-    ui.display(4200);
+    gui.display(4200);
 
     spdlog::info("Exiting automail...");
     return 0;

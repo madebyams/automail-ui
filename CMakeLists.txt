@@ -3,6 +3,10 @@ project(automail_ui)
 
 set(CMAKE_CXX_STANDARD 20)
 
+if(WIN32)
+    add_compile_definitions(_WIN32_WINNT=0x0A00)  # Windows 10+
+endif()
+
 find_package(fmt REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(webview REQUIRED)

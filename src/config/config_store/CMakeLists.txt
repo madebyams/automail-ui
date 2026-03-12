@@ -1,5 +1,5 @@
 add_library(config_store
-    config_store.cc
+        config_store.cc
 )
 
 target_link_libraries(config_store
