@@ -10,8 +10,8 @@ namespace config {
     class factory {
     public:
         static config_t from_env();
-        static config_t from_yaml(std::string path);
-        static config_t from_json(json json);
+        static config_t from_yaml(const std::string& path);
+        static config_t from_json(const json& json);
     };
 
 }

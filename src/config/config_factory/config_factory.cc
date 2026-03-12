@@ -22,7 +22,7 @@ config_t factory::from_env() {
     };
 }
 
-config_t factory::from_yaml(const std::string path) {
+config_t factory::from_yaml(const std::string& path) {
     spdlog::info("Initializing config from yaml file: {}", path);
 
     try {
@@ -41,7 +41,7 @@ config_t factory::from_yaml(const std::string path) {
     }
 }
 
-config_t factory::from_json(json json) {
+config_t factory::from_json(const json& json) {
     return {
         .hostname = json["host"],
         .port = json["port"],
