@@ -7,6 +7,7 @@ target_link_libraries(function_handler
     nlohmann_json::nlohmann_json
     spdlog::spdlog
 
+    config
     config_factory
     config_store
     mail_service
