@@ -49,6 +49,12 @@ COPY . .
 # Overwrite frontend/dist with the Angular build from stage 1
 COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
 
+# Register the local webview recipe into the Conan cache.
+# webview/0.12.0 is not published on ConanCenter, so conan_provider.cmake
+# would fail to resolve it. Running `conan create` here bakes the package
+# into ~/.conan2 before CMake ever calls Conan.
+RUN conan create webview-recipe/ --version 0.12.0
+
 # Build
 RUN cmake -S . -B build \
         -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=conan_provider.cmake \
