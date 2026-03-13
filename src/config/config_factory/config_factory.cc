@@ -9,7 +9,7 @@
 
 #include "config/config.hh"
 
-using namespace config;
+using namespace app::config;
 
 config_t factory::from_env() {
     spdlog::info("Initializing config from env...");

@@ -7,7 +7,7 @@
 
 using json = nlohmann::json;
 
-namespace config {
+namespace app::config {
     class client_type {
     public:
         enum class value {

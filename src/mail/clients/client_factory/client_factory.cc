@@ -9,13 +9,13 @@
 
 using namespace mail;
 
-std::unique_ptr<client> client_factory::create(const config::store& config_store) {
+std::unique_ptr<client> client_factory::create(const app::config::store& config_store) {
     switch (config_store.get_config().type.get_value()) {
-        case config::client_type::value::IMAP: {
+        case app::config::client_type::value::IMAP: {
             return std::make_unique<imap::client>(config_store);
         }
 
-        case config::client_type::value::COM: {
+        case app::config::client_type::value::COM: {
             return std::make_unique<com::client>();
         }
 

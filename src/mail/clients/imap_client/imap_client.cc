@@ -5,7 +5,7 @@
 using search_condition = mailio::imaps::search_condition_t;
 using namespace mail::imap;
 
-client::client(const config::store& config_store)
+client::client(const app::config::store& config_store)
     : config_(config_store.get_config()),
     config_store_(config_store),
     client_{config_.hostname, config_.port}

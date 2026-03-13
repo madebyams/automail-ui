@@ -6,7 +6,7 @@
 
 using json = nlohmann::json;
 
-namespace config {
+namespace app::config {
     class factory {
     public:
         static config_t from_env();

@@ -8,11 +8,11 @@
 
 namespace mail::imap {
     class client : public mail::client {
-        config::config_t config_;
-        config::store config_store_;
+        app::config::config_t config_;
+        app::config::store config_store_;
         mailio::imaps client_;
     public:
-        client(const config::store& config_store);
+        client(const app::config::store& config_store);
         void init() override;
         int delete_from_senders(std::list<std::string> senders) override;
         void reload() override;

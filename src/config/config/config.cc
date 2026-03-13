@@ -2,7 +2,7 @@
 
 #include <yaml-cpp/yaml.h>
 
-using namespace config;
+using namespace app::config;
 
 std::string config_t::to_json() const  {
     return json{

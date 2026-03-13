@@ -12,18 +12,15 @@ int main() {
     spdlog::info("Starting automail ui...");
 
     const filesystem_service fs;
-
-    const config::store cs(config::factory::from_yaml("config.yml"), fs);
-
-    mail_service mail_service_(
+    const app::config::store cs(app::config::factory::from_yaml("config.yml"), fs);
+    mail::mail_service mail_service_(
         cs
     );
-
     gui::gui_t gui({
         .width = 600,
         .height = 600,
         .title = "Automail"
-    }, fs, mail_service_, cs);
+    }, fs, cs, mail_service_);
 
     gui.display(4200);
 

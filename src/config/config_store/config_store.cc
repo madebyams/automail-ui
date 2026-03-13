@@ -2,7 +2,7 @@
 
 #include <spdlog/spdlog.h>
 
-using namespace config;
+using namespace app::config;
 
 store::store(config_t config_, const filesystem_service& filesystem_service)
     : config_(std::move(config_)), filesystem_service_(filesystem_service) {}

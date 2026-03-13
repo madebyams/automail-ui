@@ -3,7 +3,7 @@
 #include "config.hh"
 #include "filesystem_service.hh"
 
-namespace config {
+namespace app::config {
     class store {
         config_t config_;
         filesystem_service filesystem_service_;

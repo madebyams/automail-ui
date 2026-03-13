@@ -8,6 +8,6 @@
 namespace mail {
     class client_factory {
     public:
-        static std::unique_ptr<client> create(const config::store& config_store);
+        static std::unique_ptr<client> create(const app::config::store& config_store);
     };
 }
