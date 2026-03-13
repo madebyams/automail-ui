@@ -25,14 +25,19 @@ build:
     - |
       echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(echo -n ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD} | base64)\"}}}" \
         > /kaniko/.docker/config.json
-    # Build and push — Kaniko uses the registry as a layer cache automatically
+    # Build and push.
+    # --snapshot-mode=redo: instead of checksumming the entire filesystem after
+    #   every RUN (the default "full" mode), Kaniko replays each command to detect
+    #   changes. Far less memory-intensive — avoids OOM on runners with large
+    #   packages like webkit2gtk.
     - |
       /kaniko/executor \
-        --context   "${CI_PROJECT_DIR}" \
-        --dockerfile "${CI_PROJECT_DIR}/Dockerfile" \
-        --destination "${IMAGE}" \
+        --context        "${CI_PROJECT_DIR}" \
+        --dockerfile     "${CI_PROJECT_DIR}/Dockerfile" \
+        --destination    "${IMAGE}" \
         --cache=true \
-        --cache-repo  "${CACHE_IMAGE}"
+        --cache-repo     "${CACHE_IMAGE}" \
+        --snapshot-mode=redo
 
 # ── Extract ────────────────────────────────────────────────────────────────────
 # Uses crane to pull only the binary out of the image that was just pushed,

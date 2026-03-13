@@ -12,6 +12,8 @@ FROM ubuntu:24.04 AS cpp-builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 
+# Install all system dependencies in a single layer to minimise the number of
+# filesystem snapshots Kaniko has to take (each RUN triggers one snapshot).
 RUN apt-get update && apt-get install -y \
         build-essential \
         ninja-build \
@@ -19,17 +21,15 @@ RUN apt-get update && apt-get install -y \
         python3-pip \
         git \
         wget \
+        gpg \
         pkg-config \
         # SSL (mailio)
         libssl-dev \
         # webview dependencies on Linux
         libgtk-3-dev \
         libwebkit2gtk-4.1-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-# CMake — installed from the Kitware APT repository so the version never
-# needs to be hardcoded or kept in sync with GitHub release filenames.
-RUN wget -qO - https://apt.kitware.com/keys/kitware-archive-latest.asc \
+    # CMake from the Kitware APT repo — no hardcoded version to maintain
+    && wget -qO - https://apt.kitware.com/keys/kitware-archive-latest.asc \
         | gpg --dearmor - \
         | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null \
     && echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ noble main' \
