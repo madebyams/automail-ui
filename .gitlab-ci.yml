@@ -1,43 +1,54 @@
 stages:
   - build
+  - extract
   - release
 
 variables:
-  DOCKER_BUILDKIT: "1"
-  # Cache image kept in the project's own registry to speed up layer reuse
+  # Kaniko layer cache stored in the project registry
   CACHE_IMAGE: $CI_REGISTRY_IMAGE:buildcache
+  # Full image tag for this commit
+  IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
 
 # ── Build ──────────────────────────────────────────────────────────────────────
+# Uses Kaniko — builds and pushes the Docker image without a Docker daemon,
+# so no privileged mode or docker:dind service is needed.
 build:
   stage: build
   tags:
     - amd64
-  image: docker:27
-  services:
-    - docker:27-dind
-  before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  image:
+    name: gcr.io/kaniko-project/executor:v1.23.2-debug
+    entrypoint: [""]
   script:
-    # Build with inline layer cache so the cache image stays warm between runs.
-    # The cpp-builder stage is the expensive one (Conan + CMake); caching it
-    # saves several minutes on unchanged dependency builds.
+    # Write registry credentials into the location Kaniko expects
+    - mkdir -p /kaniko/.docker
     - |
-      docker build \
-        --cache-from $CACHE_IMAGE \
-        --build-arg BUILDKIT_INLINE_CACHE=1 \
-        --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA \
-        --tag $CACHE_IMAGE \
-        .
+      echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(echo -n ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD} | base64)\"}}}" \
+        > /kaniko/.docker/config.json
+    # Build and push — Kaniko uses the registry as a layer cache automatically
+    - |
+      /kaniko/executor \
+        --context   "${CI_PROJECT_DIR}" \
+        --dockerfile "${CI_PROJECT_DIR}/Dockerfile" \
+        --destination "${IMAGE}" \
+        --cache=true \
+        --cache-repo  "${CACHE_IMAGE}"
 
-    # Push both the versioned image and the refreshed cache
-    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
-    - docker push $CACHE_IMAGE
-
-    # Extract just the binary from the runtime stage
-    - docker create --name extract $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
-    - docker cp extract:/app/automail_ui ./automail_ui
-    - docker rm extract
-
+# ── Extract ────────────────────────────────────────────────────────────────────
+# Uses crane to pull only the binary out of the image that was just pushed,
+# without needing a Docker daemon or privileged mode.
+extract:
+  stage: extract
+  tags:
+    - amd64
+  image:
+    name: gcr.io/go-containerregistry/crane:debug
+    entrypoint: [""]
+  script:
+    - crane auth login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    # Export the image filesystem as a tar stream, then pull out just the binary.
+    # /app/automail_ui inside the image → app/automail_ui in the tar → ./automail_ui here.
+    - crane export "${IMAGE}" - | tar --strip-components=1 -xf - app/automail_ui
   artifacts:
     name: "automail_ui-$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA"
     paths:
@@ -54,8 +65,8 @@ release:
   rules:
     - if: $CI_COMMIT_TAG        # only runs on git tags, e.g. v1.2.3
   needs:
-    - job: build
-      artifacts: true           # pulls the binary from the build job
+    - job: extract
+      artifacts: true           # pulls the binary from the extract job
   before_script:
     # Upload the binary as a Generic Package so it can be linked in the release
     - |
