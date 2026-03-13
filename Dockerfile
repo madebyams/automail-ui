@@ -53,7 +53,7 @@ COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
 # webview/0.12.0 is not published on ConanCenter, so conan_provider.cmake
 # would fail to resolve it. Running `conan create` here bakes the package
 # into ~/.conan2 before CMake ever calls Conan.
-RUN conan create webview-recipe/ --version 0.12.0
+RUN conan create webview-recipe/ --version 0.12.0 --test-folder ""
 
 # Build
 RUN cmake -S . -B build \
