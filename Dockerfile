@@ -27,13 +27,16 @@ RUN apt-get update && apt-get install -y \
         libwebkit2gtk-4.1-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# CMake 4.x — adjust the version if a newer patch is available at
-# https://github.com/Kitware/CMake/releases
-ARG CMAKE_VERSION=4.3.0
-RUN wget -qO /tmp/cmake.sh \
-        "https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-x86_64.sh" \
-    && bash /tmp/cmake.sh --prefix=/usr/local --skip-license \
-    && rm /tmp/cmake.sh
+# CMake — installed from the Kitware APT repository so the version never
+# needs to be hardcoded or kept in sync with GitHub release filenames.
+RUN wget -qO - https://apt.kitware.com/keys/kitware-archive-latest.asc \
+        | gpg --dearmor - \
+        | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null \
+    && echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ noble main' \
+        | tee /etc/apt/sources.list.d/kitware.list >/dev/null \
+    && apt-get update \
+    && apt-get install -y cmake \
+    && rm -rf /var/lib/apt/lists/*
 
 # Conan 2
 RUN pip3 install conan --break-system-packages \
