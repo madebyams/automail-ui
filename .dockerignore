@@ -1,0 +1,10 @@
+build/
+cmake-build-debug-visual-studio/
+main.exe
+frontend/node_modules/
+frontend/dist/
+.git/
+.claude/
+.idea/
+.qtcreator/
+config.yml

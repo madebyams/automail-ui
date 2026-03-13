@@ -1,0 +1,72 @@
+stages:
+  - build
+  - release
+
+variables:
+  DOCKER_BUILDKIT: "1"
+  # Cache image kept in the project's own registry to speed up layer reuse
+  CACHE_IMAGE: $CI_REGISTRY_IMAGE:buildcache
+
+# ── Build ──────────────────────────────────────────────────────────────────────
+build:
+  stage: build
+  image: docker:27
+  services:
+    - docker:27-dind
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    # Build with inline layer cache so the cache image stays warm between runs.
+    # The cpp-builder stage is the expensive one (Conan + CMake); caching it
+    # saves several minutes on unchanged dependency builds.
+    - |
+      docker build \
+        --cache-from $CACHE_IMAGE \
+        --build-arg BUILDKIT_INLINE_CACHE=1 \
+        --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA \
+        --tag $CACHE_IMAGE \
+        .
+
+    # Push both the versioned image and the refreshed cache
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    - docker push $CACHE_IMAGE
+
+    # Extract just the binary from the runtime stage
+    - docker create --name extract $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    - docker cp extract:/app/automail_ui ./automail_ui
+    - docker rm extract
+
+  artifacts:
+    name: "automail_ui-$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - automail_ui
+    expire_in: 30 days
+
+# ── Release (tags only) ────────────────────────────────────────────────────────
+# Creates a GitLab Release and attaches the binary whenever a version tag is pushed.
+release:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  rules:
+    - if: $CI_COMMIT_TAG        # only runs on git tags, e.g. v1.2.3
+  needs:
+    - job: build
+      artifacts: true           # pulls the binary from the build job
+  before_script:
+    # Upload the binary as a Generic Package so it can be linked in the release
+    - |
+      curl --fail \
+           --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+           --upload-file automail_ui \
+           "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/automail_ui/${CI_COMMIT_TAG}/automail_ui"
+  script:
+    - echo "Creating release for $CI_COMMIT_TAG"
+  release:
+    tag_name: $CI_COMMIT_TAG
+    name: "Automail UI $CI_COMMIT_TAG"
+    description: "Automated release for $CI_COMMIT_TAG"
+    assets:
+      links:
+        - name: "automail_ui (Linux x86_64)"
+          url: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/automail_ui/${CI_COMMIT_TAG}/automail_ui"
+          link_type: package
