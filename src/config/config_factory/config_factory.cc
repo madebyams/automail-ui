@@ -53,6 +53,6 @@ config_t factory::from_json(const json& json) {
         .password = json["password"],
         .ssl = json["ssl"],
         .mailbox = json["mailbox"],
-        .type = client_type::from_string(json["client_type"])
+        .type = client_type::from_string(json["client_type"].get<std::string>())
     };
 }
