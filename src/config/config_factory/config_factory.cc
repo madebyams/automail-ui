@@ -29,11 +29,15 @@ config_t factory::from_yaml(const std::string& path) {
         const YAML::Node config = YAML::LoadFile(path);
         auto imap_config = config["imap"];
 
+        spdlog::info("Config initialized successfully.");
         return {
-            .hostname = imap_config["host"].as<std::string>(),
+            .hostname = imap_config["hostname"].as<std::string>(),
             .port = imap_config["port"].as<uint32_t>(),
             .username = imap_config["username"].as<std::string>(),
-            .password = imap_config["password"].as<std::string>()
+            .password = imap_config["password"].as<std::string>(),
+            .ssl = imap_config["ssl"].as<bool>(),
+            .mailbox = imap_config["mailbox"].as<std::string>(),
+            .type = client_type::from_string(config["client_type"].as<std::string>())
         };
     } catch (std::runtime_error &e) {
         spdlog::error("Error when configuring: {}", e.what());
@@ -43,9 +47,12 @@ config_t factory::from_yaml(const std::string& path) {
 
 config_t factory::from_json(const json& json) {
     return {
-        .hostname = json["host"],
+        .hostname = json["hostname"],
         .port = json["port"],
         .username = json["username"],
-        .password = json["password"]
+        .password = json["password"],
+        .ssl = json["ssl"],
+        .mailbox = json["mailbox"],
+        .type = client_type::from_string(json["client_type"])
     };
 }

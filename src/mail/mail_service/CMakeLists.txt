@@ -6,4 +6,5 @@ target_link_libraries(mail_service PUBLIC
     nlohmann_json::nlohmann_json
     mailio::mailio
     spdlog::spdlog
+    client_factory
 )

@@ -20,9 +20,9 @@ namespace gui {
         webview::webview window_;
         config_store config_store_;
         filesystem_service filesystem_service_;
-        mail_service mail_service_;
+        mail_service& mail_service_;
     public:
-        gui_t(config config, const filesystem_service& filesystem_service, const mail_service& mail_service, const config_store& config_store);
+        gui_t(config config, const filesystem_service& filesystem_service, mail_service& mail_service, const config_store& config_store);
         void display(std::string html_path);
         void display(uint32_t server_port);
     };

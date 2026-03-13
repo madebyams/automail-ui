@@ -1,5 +1,4 @@
 #pragma once
-#include "../../../gui/gui.hh"
 
 #ifndef WIN32
     #error("The COM client cannot be used in non Windows systems!")
@@ -7,7 +6,10 @@
 
 #include <vector>
 
+#define WIN32_LEAN_AND_MEAN
+#include <winsock2.h>
 #include <Windows.h>
+#include <oaidl.h>
 
 #include "mail/clients/mail_client.hh"
 

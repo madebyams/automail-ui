@@ -3,6 +3,7 @@ add_executable(main
 )
 
 target_link_libraries(main
+    config
     config_factory
     filesystem_service
     imap_client

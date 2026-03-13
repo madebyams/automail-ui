@@ -3,6 +3,8 @@
 #include "config/config.hh"
 #include "config/config_factory.hh"
 
+#include "mail/clients/client_factory.hh"
+
 #include <nlohmann/json.hpp>
 #include <utility>
 #include <spdlog/spdlog.h>
@@ -13,7 +15,7 @@ using config_factory = config::factory;
 using namespace gui;
 using json = nlohmann::json;
 
-gui_t::gui_t(config config, const filesystem_service& filesystem_service, const mail_service& mail_service, const config_store& config_store)
+gui_t::gui_t(config config, const filesystem_service& filesystem_service, mail_service& mail_service, const config_store& config_store)
     : config_(std::move(config)),
     filesystem_service_(filesystem_service),
     mail_service_(mail_service),
@@ -32,12 +34,19 @@ gui_t::gui_t(config config, const filesystem_service& filesystem_service, const 
     });
 
     this->window_.bind("saveImapConfig", [&](const std::string& request) {
-        json config = json::parse<>(request);
-        app_config mail_config = config_factory::from_json(config);
-        this->config_store_.save_config(mail_config);
-        this->mail_service_.get_client().reload();
+        try {
+            spdlog::debug("Received request: {}", request);
+            json config = json::parse<>(request);
+            app_config mail_config = config_factory::from_json(config[0]);
+            this->config_store_.save_config(mail_config);
+            this->mail_service_.set_client(mail::client_factory::create(this->config_store_));
+            this->mail_service_.get_client().reload();
 
-        return "{}";
+            return "{}";
+        } catch (std::exception& e) {
+            spdlog::error("Error while saving config: {}", e.what());
+            return "{}";
+        }
     });
 
     this->window_.bind("loadImapConfig", [&](const std::string& request) {

@@ -8,9 +8,9 @@ namespace config {
         config_t config_;
         filesystem_service filesystem_service_;
     public:
-        store(config_t config_, filesystem_service filesystem_service);
+        store(config_t config_, const filesystem_service& filesystem_service);
 
         config_t get_config() const;
-        void save_config(config_t config_);
+        void save_config(const config_t& config_);
     };
 }
