@@ -1,0 +1,24 @@
+// ─── Top-level layout ──────────────────────────────────────────────────────
+.app-layout {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.app-body {
+  display: flex;
+  flex: 1;
+  min-height: 0; // allow flex children to scroll
+}
+
+// ─── Main content ───────────────────────────────────────────────────────────
+.app-main {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 24px;
+  background-color: var(--bg-app);
+}

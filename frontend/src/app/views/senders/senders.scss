@@ -1,0 +1,120 @@
+// ─── Banners ────────────────────────────────────────────────────────────────
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 540px;
+  padding: 13px 16px;
+  border-radius: var(--radius-lg);
+  border: 1px solid;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 12px;
+
+  > svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+
+  > span { flex: 1; }
+
+  &--success {
+    background-color: rgba(59, 165, 92, 0.12);
+    border-color: rgba(59, 165, 92, 0.35);
+    color: #3ba55c;
+  }
+
+  &--error {
+    background-color: rgba(237, 66, 69, 0.12);
+    border-color: rgba(237, 66, 69, 0.35);
+    color: var(--danger);
+  }
+}
+
+.banner-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: inherit;
+  opacity: 0.6;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: opacity 150ms ease, background-color 150ms ease;
+
+  svg { width: 14px; height: 14px; }
+
+  &:hover { opacity: 1; background-color: rgba(0, 0, 0, 0.1); }
+}
+
+// ─── Sender list ────────────────────────────────────────────────────────────
+.sender-section { min-height: 60px; }
+
+.sender-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sender-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 8px;
+  border-radius: var(--radius);
+  transition: background-color 150ms ease;
+  &:hover { background-color: var(--bg-hover); }
+}
+
+.sender-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: var(--accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.sender-email {
+  flex: 1;
+  font-size: 14px;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 36px 0;
+  color: var(--text-muted);
+
+  svg { width: 34px; height: 34px; opacity: 0.3; margin-bottom: 4px; }
+}
+
+.empty-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.empty-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+}

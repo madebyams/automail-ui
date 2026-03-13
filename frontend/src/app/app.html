@@ -1,0 +1,16 @@
+<div class="app-layout">
+  <app-header/>
+
+  <div class="app-body">
+    <app-sidebar [activeView]="view()" (viewChange)="view.set($event)"/>
+
+    <main class="app-main">
+      @if (view() === 'senders') {
+        <app-senders-view/>
+      }
+      @if (view() === 'settings') {
+        <app-settings-view/>
+      }
+    </main>
+  </div>
+</div>

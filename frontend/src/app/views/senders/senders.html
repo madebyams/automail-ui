@@ -1,0 +1,107 @@
+@if (deleteStatus() === 'success') {
+  <div class="banner banner--success" role="alert">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+      <polyline points="22 4 12 14.01 9 11.01"/>
+    </svg>
+    <span>Emails processed and deleted successfully.</span>
+    <button class="banner-close" (click)="dismissBanner()" title="Dismiss">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 6 6 18M6 6l12 12"/>
+      </svg>
+    </button>
+  </div>
+}
+
+@if (deleteStatus() === 'error') {
+  <div class="banner banner--error" role="alert">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="12" y1="8" x2="12" y2="12"/>
+      <line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    <span>Deletion failed. Please check your connection and try again.</span>
+    <button class="banner-close" (click)="dismissBanner()" title="Dismiss">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 6 6 18M6 6l12 12"/>
+      </svg>
+    </button>
+  </div>
+}
+
+<div class="card">
+  <div class="card-header">
+    <div>
+      <h1 class="card-title">Sender Filter</h1>
+      <p class="card-subtitle">Manage the senders whose emails will be processed</p>
+    </div>
+    @if (model.senderList.length > 0) {
+      <span class="badge">{{ model.senderList.length }}</span>
+    }
+  </div>
+
+  <div class="card-body">
+    <form class="input-row" (submit)="addSender(); $event.preventDefault()">
+      <input class="text-input" type="email" [(ngModel)]="email" name="email"
+             placeholder="name@example.com" autocomplete="off"/>
+      <button class="btn btn-primary" type="submit">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14M12 5v14"/>
+        </svg>
+        Add
+      </button>
+    </form>
+
+    <div class="sender-section">
+      @if (model.senderList.length === 0) {
+        <div class="empty-state">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="20" height="16" x="2" y="4" rx="2"/>
+            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+          </svg>
+          <p class="empty-title">No senders added</p>
+          <p class="empty-subtitle">Add an email address above to get started</p>
+        </div>
+      } @else {
+        <ul class="sender-list">
+          @for (sender of model.senderList; track sender; let i = $index) {
+            <li class="sender-item">
+              <div class="sender-avatar">{{ sender[0].toUpperCase() }}</div>
+              <span class="sender-email">{{ sender }}</span>
+              <button class="icon-btn danger" (click)="removeSender(i)"
+                      [title]="'Remove ' + sender">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M18 6 6 18M6 6l12 12"/>
+                </svg>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  </div>
+
+  @if (model.senderList.length > 0) {
+    <div class="card-footer">
+      <span class="footer-hint">
+        {{ model.senderList.length }} sender{{ model.senderList.length !== 1 ? 's' : '' }} queued
+      </span>
+      <button class="btn btn-danger" (click)="processAndDelete()"
+              [disabled]="deleteStatus() === 'deleting'">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+        </svg>
+        @if (deleteStatus() === 'deleting') { Processing… }
+        @else { Process & Delete }
+      </button>
+    </div>
+  }
+</div>
