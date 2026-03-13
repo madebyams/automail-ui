@@ -34,7 +34,7 @@ void gui_t::display(std::string html_path) {
 void gui_t::display(uint32_t server_port) {
     spdlog::info("Displaying at :{}...", server_port);
 
-    this->window_.navigate("http://localhost:4200");
+    this->window_.navigate("http://localhost:" + std::to_string(server_port));
     this->window_.run();
 }
 
