@@ -22,5 +22,13 @@ export class App implements OnInit {
 
   ngOnInit(): void {
     this.theme.init();
+
+    if (typeof window.hasConfig === 'function') {
+      window.hasConfig().then((has) => {
+        if (!has) {
+          this.view.set('settings');
+        }
+      });
+    }
   }
 }

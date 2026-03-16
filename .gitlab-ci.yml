@@ -104,9 +104,9 @@ release:
       artifacts: true
   before_script:
     - |
-      curl --fail \
+      wget --method=PUT \
            --header "JOB-TOKEN: $CI_JOB_TOKEN" \
-           --upload-file automail_ui \
+           --body-file=automail_ui \
            "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/automail_ui/${CI_COMMIT_TAG}/automail_ui"
   script:
     - echo "Creating release for $CI_COMMIT_TAG"
