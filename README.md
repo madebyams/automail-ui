@@ -1,4 +1,4 @@
-# 📬 Automail UI
+# [📬 Automail UI](https://automail-ui.anothersimplecoder.de/)
 
 > Bulk-delete emails from specific senders — without opening your inbox.
 
