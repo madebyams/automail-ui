@@ -1,15 +1,15 @@
 if(WIN32)
-    add_executable(main
+    add_executable(automailer_ui
         main.cpp
         "${CMAKE_BINARY_DIR}/generated/resources.rc"
     )
 else()
-    add_executable(main
+    add_executable(automailer_ui
         main.cpp
     )
 endif()
 
-target_link_libraries(main
+target_link_libraries(automailer_ui
     config
     config_factory
     config_service
