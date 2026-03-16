@@ -21,3 +21,7 @@ target_link_libraries(automailer_ui
 
     spdlog::spdlog
 )
+
+if(WIN32)
+    install(TARGETS automailer_ui RUNTIME DESTINATION .)
+endif()

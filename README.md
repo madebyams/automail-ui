@@ -63,6 +63,7 @@ Automail UI is a lightweight desktop app with a **C++20 native backend** and an 
 | Tool | Notes |
 |------|-------|
 | Visual Studio 2022 | Community edition is fine — needs the **Desktop development with C++** workload |
+| NSIS | Required to build the installer — [nsis.sourceforge.io](https://nsis.sourceforge.io/Download) |
 | Outlook | Only required if using the COM client |
 
 ### 🐧 Linux (additional)
@@ -95,9 +96,14 @@ cmake -S . -B build `
 
 # 3️⃣ Compile
 cmake --build build --config Release
+
+# 4️⃣ Package as installer (requires NSIS)
+cpack --config build/CPackConfig.cmake -C Release
 ```
 
-📦 Output: `build\src\main\Release\main.exe`
+📦 Output:
+- Executable: `build\src\main\Release\automailer_ui.exe`
+- Installer: `build\Automail UI-1.0.0-win64.exe`
 
 > 💡 **After every `ng build`**, CMake automatically detects the changed dist files and re-embeds them on the next `cmake --build` — no manual reconfigure needed.
 
