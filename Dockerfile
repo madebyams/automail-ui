@@ -8,7 +8,9 @@ COPY frontend/ ./
 RUN npm run build
 
 # ── Stage 2: C++ backend ──────────────────────────────────────────────────────
+ARG BUILD_TYPE=Release
 FROM ubuntu:24.04 AS cpp-builder
+ARG BUILD_TYPE
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -58,9 +60,9 @@ RUN conan create webview-recipe/ --version 0.12.0 --test-folder ""
 # Build
 RUN cmake -S . -B build \
         -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=conan_provider.cmake \
-        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
         -G Ninja \
-    && cmake --build build --config Release
+    && cmake --build build --config ${BUILD_TYPE}
 
 # ── Stage 3: Runtime image ────────────────────────────────────────────────────
 FROM ubuntu:24.04 AS runtime
@@ -75,6 +77,6 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 # The Angular bundle is compiled into the binary as C++ byte arrays – no dist folder needed.
-COPY --from=cpp-builder /app/build/src/main/main ./automail_ui
+COPY --from=cpp-builder /app/build/src/main/automailer_ui ./automail_ui
 
 CMD ["./automail_ui"]

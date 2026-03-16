@@ -1,4 +1,6 @@
 #include <spdlog/spdlog.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/sinks/basic_file_sink.h>
 
 #include "config/config_service.hh"
 #include "frontend_server.hh"
@@ -10,6 +12,16 @@
 
 
 int main() {
+#ifdef NDEBUG
+    auto logger = spdlog::basic_logger_mt("automail", "automail.log");
+    spdlog::set_default_logger(logger);
+    spdlog::set_level(spdlog::level::info);
+#else
+    auto logger = spdlog::stdout_color_mt("automail");
+    spdlog::set_default_logger(logger);
+    spdlog::set_level(spdlog::level::debug);
+#endif
+
     spdlog::info("Starting automail ui...");
 
     app::config::service config_service;

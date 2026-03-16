@@ -6,12 +6,11 @@ stages:
 variables:
   # Kaniko layer cache stored in the project registry
   CACHE_IMAGE: $CI_REGISTRY_IMAGE:buildcache
-  # Full image tag for this commit
+  # Full image tag for this commit (used by the release pipeline)
   IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
 
-# ── Build ──────────────────────────────────────────────────────────────────────
-# Uses Kaniko — builds and pushes the Docker image without a Docker daemon,
-# so no privileged mode or docker:dind service is needed.
+# ── Build – all non-tag commits (Debug, no push) ───────────────────────────────
+# Verifies the code compiles on every branch push without publishing an image.
 build:
   stage: build
   tags:
@@ -19,29 +18,56 @@ build:
   image:
     name: gcr.io/kaniko-project/executor:v1.23.2-debug
     entrypoint: [""]
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
+    - when: always
   script:
-    # Write registry credentials into the location Kaniko expects
     - mkdir -p /kaniko/.docker
     - |
       echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(echo -n ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD} | base64)\"}}}" \
         > /kaniko/.docker/config.json
-    # Build and push.
-    # --snapshot-mode=redo: instead of checksumming the entire filesystem after
-    #   every RUN (the default "full" mode), Kaniko replays each command to detect
-    #   changes. Far less memory-intensive — avoids OOM on runners with large
-    #   packages like webkit2gtk.
     - |
       /kaniko/executor \
-        --context        "${CI_PROJECT_DIR}" \
-        --dockerfile     "${CI_PROJECT_DIR}/Dockerfile" \
-        --destination    "${IMAGE}" \
+        --context           "${CI_PROJECT_DIR}" \
+        --dockerfile        "${CI_PROJECT_DIR}/Dockerfile" \
+        --build-arg         "BUILD_TYPE=Debug" \
+        --no-push \
         --cache=true \
-        --cache-repo     "${CACHE_IMAGE}" \
-        --snapshot-mode=redo
+        --cache-repo        "${CACHE_IMAGE}" \
+        --snapshot-mode=redo \
+        --compressed-caching=false \
+        --single-snapshot
 
-# ── Extract ────────────────────────────────────────────────────────────────────
-# Uses crane to pull only the binary out of the image that was just pushed,
-# without needing a Docker daemon or privileged mode.
+# ── Build Release – tags only (Release, pushes image) ─────────────────────────
+build-release:
+  stage: build
+  tags:
+    - amd64
+  image:
+    name: gcr.io/kaniko-project/executor:v1.23.2-debug
+    entrypoint: [""]
+  rules:
+    - if: $CI_COMMIT_TAG
+  script:
+    - mkdir -p /kaniko/.docker
+    - |
+      echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(echo -n ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD} | base64)\"}}}" \
+        > /kaniko/.docker/config.json
+    - |
+      /kaniko/executor \
+        --context           "${CI_PROJECT_DIR}" \
+        --dockerfile        "${CI_PROJECT_DIR}/Dockerfile" \
+        --build-arg         "BUILD_TYPE=Release" \
+        --destination       "${IMAGE}" \
+        --cache=true \
+        --cache-repo        "${CACHE_IMAGE}" \
+        --snapshot-mode=redo \
+        --compressed-caching=false \
+        --single-snapshot
+
+# ── Extract – tags only ────────────────────────────────────────────────────────
+# Pulls the Release binary out of the image without a Docker daemon.
 extract:
   stage: extract
   tags:
@@ -49,31 +75,34 @@ extract:
   image:
     name: gcr.io/go-containerregistry/crane:debug
     entrypoint: [""]
+  rules:
+    - if: $CI_COMMIT_TAG
+  needs:
+    - job: build-release
   script:
     - crane auth login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    # Export the image filesystem as a tar stream, then pull out just the binary.
+    # Export image filesystem as a tar stream, extract just the binary.
     # /app/automail_ui inside the image → app/automail_ui in the tar → ./automail_ui here.
     - crane export "${IMAGE}" - | tar --strip-components=1 -xf - app/automail_ui
   artifacts:
-    name: "automail_ui-$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA"
+    name: "automail_ui-$CI_COMMIT_TAG"
     paths:
       - automail_ui
-    expire_in: 30 days
+    expire_in: 90 days
 
-# ── Release (tags only) ────────────────────────────────────────────────────────
-# Creates a GitLab Release and attaches the binary whenever a version tag is pushed.
+# ── Release – tags only ────────────────────────────────────────────────────────
+# Uploads the binary as a Generic Package and creates a GitLab Release entry.
 release:
   stage: release
   tags:
     - amd64
   image: registry.gitlab.com/gitlab-org/release-cli:latest
   rules:
-    - if: $CI_COMMIT_TAG        # only runs on git tags, e.g. v1.2.3
+    - if: $CI_COMMIT_TAG
   needs:
     - job: extract
-      artifacts: true           # pulls the binary from the extract job
+      artifacts: true
   before_script:
-    # Upload the binary as a Generic Package so it can be linked in the release
     - |
       curl --fail \
            --header "JOB-TOKEN: $CI_JOB_TOKEN" \
