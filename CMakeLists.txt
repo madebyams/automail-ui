@@ -43,6 +43,7 @@ find_package(nlohmann_json REQUIRED)
 find_package(mailio REQUIRED)
 find_package(yaml-cpp REQUIRED)
 find_package(httplib REQUIRED)
+find_package(SQLiteCpp REQUIRED)
 
 include_directories(include)
 add_subdirectory(src)

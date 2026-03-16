@@ -8,8 +8,8 @@ std::string config_t::to_json() const  {
     return json{
         {"hostname", hostname},
         {"port", port},
-        {"username", username},
-        {"password", password},
+        {"username", credential.username},
+        {"password", credential.password},
         {"ssl", ssl},
         {"mailbox", mailbox},
         {"client_type", type.to_string()}
@@ -21,8 +21,8 @@ std::string config_t::to_yaml() const {
     YAML::Node imap_node;
     imap_node["hostname"] = hostname;
     imap_node["port"] = port;
-    imap_node["username"] = username;
-    imap_node["password"] = password;
+    imap_node["username"] = credential.username;
+    imap_node["password"] = credential.password;
     imap_node["ssl"] = ssl;
     imap_node["mailbox"] = mailbox;
 

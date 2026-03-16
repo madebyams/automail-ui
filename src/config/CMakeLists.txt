@@ -1,3 +1,4 @@
 add_subdirectory(config)
 add_subdirectory(config_factory)
 add_subdirectory(config_store)
+add_subdirectory(config_service)

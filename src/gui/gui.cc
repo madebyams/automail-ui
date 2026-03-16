@@ -1,7 +1,6 @@
 #include "gui/gui.hh"
 
 #include "config/config.hh"
-#include "config/config_factory.hh"
 
 #include <nlohmann/json.hpp>
 #include <utility>
@@ -11,11 +10,11 @@
 using namespace gui;
 using json = nlohmann::json;
 
-gui_t::gui_t(config config, const filesystem_service& filesystem_service, const app::config::store& config_store, mail::mail_service& mail_service)
+gui_t::gui_t(config config, const filesystem_service& filesystem_service, app::config::service& config_service, mail::mail_service& mail_service)
     : config_(std::move(config)),
     filesystem_service_(filesystem_service),
     window_(false, nullptr),
-    function_handler_{window_, mail_service, config_store}{
+    function_handler_{window_, mail_service, config_service}{
     spdlog::info("Initializing UI...");
 
     this->window_.set_title(config_.title);

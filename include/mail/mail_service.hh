@@ -9,13 +9,13 @@
 #include <string>
 
 #include "mail/clients/mail_client.hh"
-#include "config/config_store.hh"
+#include "config/config_service.hh"
 
 namespace mail {
     class mail_service
     {
     public:
-        mail_service(const app::config::store& config_store);
+        mail_service(app::config::service& config_service);
         int delete_from_senders(const std::list<std::string>& senders) const;
         client& get_client() const;
         void set_client(std::unique_ptr<client> client);

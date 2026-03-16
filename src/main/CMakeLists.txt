@@ -12,6 +12,7 @@ endif()
 target_link_libraries(main
     config
     config_factory
+    config_service
     filesystem_service
     frontend_server
     imap_client

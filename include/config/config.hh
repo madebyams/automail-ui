@@ -2,8 +2,11 @@
 
 #include <cstdint>
 #include <string>
+#include <vector>
 
 #include <nlohmann/json.hpp>
+
+#include "config/credential.hh"
 
 using json = nlohmann::json;
 
@@ -52,17 +55,18 @@ namespace app::config {
         client_type(value value) : value_(value) {}
     };
 
-
     struct config_t {
+        int64_t id = -1;
         std::string hostname;
         uint32_t port;
-        std::string username;
-        std::string password;
         bool ssl = true;
         std::string mailbox{"INBOX"};
         client_type type = client_type::IMAP();
 
-        std::string to_json() const;
-        std::string to_yaml() const;
+        credential_t credential;
+        std::vector<std::string> senders_to_be_deleted;
+
+        [[nodiscard]] std::string to_json() const;
+        [[nodiscard]] std::string to_yaml() const;
     };
 }

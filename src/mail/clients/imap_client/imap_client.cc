@@ -5,9 +5,9 @@
 using search_condition = mailio::imaps::search_condition_t;
 using namespace mail::imap;
 
-client::client(const app::config::store& config_store)
-    : config_(config_store.get_config()),
-    config_store_(config_store),
+client::client(app::config::service& config_service)
+    : config_service_(config_service),
+    config_(config_service_.get_config()),
     client_{config_.hostname, config_.port}
 {}
 
@@ -17,7 +17,7 @@ void client::init() {
         boost::asio::ssl::verify_none
     });
 
-    this->client_.authenticate(config_.username, config_.password, mailio::imaps::auth_method_t::START_TLS);
+    this->client_.authenticate(config_.credential.username, config_.credential.password, mailio::imaps::auth_method_t::START_TLS);
 }
 
 int client::delete_from_senders(std::list<std::string> senders) {
@@ -45,6 +45,6 @@ int client::delete_from_senders(std::list<std::string> senders) {
 }
 
 void client::reload() {
-    this->config_ = this->config_store_.get_config();
+    this->config_ = this->config_service_.get_config();
     spdlog::info("Reloaded config");
 }

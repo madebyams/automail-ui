@@ -6,6 +6,7 @@ target_link_libraries(function_handler
     webview::core
     nlohmann_json::nlohmann_json
     spdlog::spdlog
+    SQLiteCpp
 
     config
     config_factory
@@ -21,6 +22,7 @@ target_link_libraries(gui PUBLIC
     nlohmann_json::nlohmann_json
     spdlog::spdlog
     webview::core
+    SQLiteCpp
 
     config_factory
     config_store

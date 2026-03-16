@@ -2,7 +2,6 @@
 
 #include <stdexcept>
 
-#include "config/config.hh"
 #include "mail/clients/imap_client.hh"
 #ifdef _WIN32
 #include "mail/clients/com/com_client.hh"
@@ -11,10 +10,14 @@
 
 using namespace mail;
 
-std::unique_ptr<client> client_factory::create(const app::config::store& config_store) {
-    switch (config_store.get_config().type.get_value()) {
+std::unique_ptr<client> client_factory::create(app::config::service& config_service) {
+    if (!config_service.has_config()) {
+        return nullptr;
+    }
+    const auto config = config_service.get_config();
+    switch (config.type.get_value()) {
         case app::config::client_type::value::IMAP: {
-            return std::make_unique<imap::client>(config_store);
+            return std::make_unique<imap::client>(config_service);
         }
 
 #ifdef _WIN32

@@ -8,7 +8,7 @@
 using search_condition = mailio::imaps::search_condition_t;
 using namespace mail;
 
-mail_service::mail_service(const app::config::store& config_store)
+mail_service::mail_service(app::config::service& config_store)
     : client_(client_factory::create(config_store))
 {}
 

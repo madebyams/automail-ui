@@ -3,9 +3,10 @@ add_library(client_factory
 )
 
 target_link_libraries(client_factory PUBLIC
-        nlohmann_json::nlohmann_json
-        imap_client
-        config_store
+    nlohmann_json::nlohmann_json
+    imap_client
+    config_store
+    SQLiteCpp
 )
 
 if(WIN32)
