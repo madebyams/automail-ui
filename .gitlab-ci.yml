@@ -21,13 +21,15 @@ variables:
 
 .windows:
   tags: [win]
+  variables:
+    CONAN_HOME: 'C:\conan'
   before_script:
     - cd frontend
     - npm ci
     - npm run build
     - cd ..
     - conan profile detect --force
-    - (Get-Content "$env:USERPROFILE\.conan2\profiles\default") -replace 'compiler.cppstd=\d+', 'compiler.cppstd=20' | Set-Content "$env:USERPROFILE\.conan2\profiles\default"
+    - (Get-Content "$env:CONAN_HOME\profiles\default") -replace 'compiler.cppstd=\d+', 'compiler.cppstd=20' | Set-Content "$env:CONAN_HOME\profiles\default"
     - conan create webview-recipe/ --version 0.12.0 --build=missing
 
 # ─────────────────────────── DEBUG BUILDS (all non-tag commits) ───────────────
