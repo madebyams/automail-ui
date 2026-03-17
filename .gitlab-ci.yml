@@ -96,24 +96,27 @@ release:
   stage: release
   tags:
     - amd64
-  image: registry.hub.docker.com/gitlab/glab:latest
+  image: curlimages/curl:latest
   rules:
     - if: $CI_COMMIT_TAG
   needs:
     - job: extract
       artifacts: true
   script:
-    - apk add curl
     - |
       curl --fail --request PUT \
            --header "JOB-TOKEN: $CI_JOB_TOKEN" \
            --upload-file automail_ui \
            "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/automail_ui/${CI_COMMIT_TAG}/automail_ui"
     - |
-      GITLAB_TOKEN=$CI_JOB_TOKEN \
-      GITLAB_HOST=$CI_SERVER_HOST \
-      glab release create "$CI_COMMIT_TAG" \
-           --repo "$CI_PROJECT_PATH" \
-           --name "Automail UI $CI_COMMIT_TAG" \
-           --notes "Automated release for $CI_COMMIT_TAG" \
-           --asset-links "[{\"name\":\"automail_ui (Linux x86_64)\",\"url\":\"${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/automail_ui/${CI_COMMIT_TAG}/automail_ui\",\"link_type\":\"package\"}]"
+      curl --fail --request POST \
+           --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+           --header "Content-Type: application/json" \
+           --data "{\"tag_name\":\"${CI_COMMIT_TAG}\",\"name\":\"Automail UI ${CI_COMMIT_TAG}\",\"description\":\"Automated release for ${CI_COMMIT_TAG}\"}" \
+           "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/releases"
+    - |
+      curl --fail --request POST \
+           --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+           --header "Content-Type: application/json" \
+           --data "{\"name\":\"automail_ui (Linux x86_64)\",\"url\":\"${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/automail_ui/${CI_COMMIT_TAG}/automail_ui\",\"link_type\":\"package\"}" \
+           "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/releases/${CI_COMMIT_TAG}/assets/links"
