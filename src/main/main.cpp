@@ -7,7 +7,6 @@
 #include "filesystem_service.hh"
 #include "config/config_store.hh"
 #include "mail/mail_service.hh"
-#include "config/config_factory.hh"
 #include "gui/gui.hh"
 
 

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "config/config_store.hh"
 #include "mail/mail_service.hh"
 
 #include <webview/webview.h>

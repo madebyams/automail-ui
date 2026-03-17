@@ -1,7 +1,5 @@
 #include "frontend_server.hh"
 
-#include <stdexcept>
-
 #include <spdlog/spdlog.h>
 #include "resources_map.hh"    // URL→ID map + mime_type_for() – always generated
 
