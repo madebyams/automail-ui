@@ -23,12 +23,15 @@ variables:
   tags: [win]
   timeout: 2h
   variables:
-    CONAN_HOME: '$CI_PROJECT_DIR/.conan'
+    CONAN_HOME: 'C:\conan'
   cache:
     key: conan-windows-v1
     paths:
       - .conan/p/
   before_script:
+    - New-Item -ItemType Directory -Force -Path ".conan" | Out-Null
+    - cmd /c "if exist C:\conan (rmdir C:\conan 2>nul || rmdir /S /Q C:\conan)"
+    - cmd /c mklink /J "C:\conan" "$PWD\.conan"
     - cd frontend
     - npm ci
     - npm run build
