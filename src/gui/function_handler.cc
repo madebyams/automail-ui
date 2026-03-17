@@ -27,6 +27,19 @@ function_handler::function_handler(webview::webview& window, mail::mail_service&
     this->window_.bind("loadImapConfig", [&](const std::string& request) {
         return this->load_imap_config(request);
     });
+    this->window_.bind("getSenders", [&](const std::string& request) {
+        return this->get_senders(request);
+    });
+    this->window_.bind("addToSenderList", [&](const std::string& request) {
+        return this->add_to_sender_list(request);
+    });
+    this->window_.bind("removeFromSenderList", [&](const std::string& request) {
+        return this->remove_from_sender_list(request);
+    });
+}
+
+std::string function_handler::get_senders(const std::string& _request) {
+    return json(this->mail_service_.get_senders()).dump();
 }
 
 std::string function_handler::has_config(const std::string& _request) {
@@ -58,4 +71,21 @@ std::string function_handler::save_imap_config(const std::string& request) {
         spdlog::error("Error while saving config: {}", e.what());
         return "{}";
     }
+}
+
+std::string function_handler::remove_from_sender_list(const std::string& request) {
+    json request_object = json::parse<>(request);
+    this->mail_service_.remove_sender(request_object[0]);
+    return json(this->mail_service_.get_senders()).dump();
+}
+
+std::string function_handler::add_to_sender_list(const std::string& request) {
+    spdlog::debug("Received request: {}", request);
+    json request_object = json::parse<>(request);
+    this->mail_service_.add_sender(request_object[0]);
+
+    json sender_json = this->mail_service_.get_senders();
+    std::string jsoned = sender_json.dump();
+    spdlog::debug("Result: {}", jsoned);
+    return jsoned;
 }

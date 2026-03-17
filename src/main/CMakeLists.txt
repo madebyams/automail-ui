@@ -20,6 +20,7 @@ target_link_libraries(automailer_ui
     gui
 
     spdlog::spdlog
+    SQLiteCpp
 )
 
 if(WIN32)

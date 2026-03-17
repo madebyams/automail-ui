@@ -4,8 +4,8 @@
 
 using namespace app::config;
 
-service::service()
-    : db_(DB_PATH, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE) {
+service::service(SQLite::Database& db)
+    : db_(db) {
     try {
         spdlog::info("Initializing config database...");
 
@@ -17,7 +17,7 @@ service::service()
             )
         )");
 
-            db_.exec(R"(
+        db_.exec(R"(
             CREATE TABLE IF NOT EXISTS config (
                 id             INTEGER PRIMARY KEY,
                 hostname       TEXT,
@@ -26,13 +26,6 @@ service::service()
                 mailbox        TEXT    NOT NULL DEFAULT 'INBOX',
                 client_type    TEXT    NOT NULL DEFAULT 'IMAP',
                 credential_id  INTEGER REFERENCES credentials(id)
-            )
-        )");
-
-            db_.exec(R"(
-            CREATE TABLE IF NOT EXISTS sender_blocklist (
-                id    INTEGER PRIMARY KEY,
-                email TEXT    NOT NULL UNIQUE
             )
         )");
     } catch (const SQLite::Exception& exception) {

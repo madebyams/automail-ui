@@ -12,8 +12,11 @@ namespace gui {
 
         std::string do_delete(const std::string& request);
         std::string has_config(const std::string& request);
+        std::string get_senders(const std::string& request);
         std::string load_imap_config(const std::string& request);
         std::string save_imap_config(const std::string& request);
+        std::string add_to_sender_list(const std::string& request);
+        std::string remove_from_sender_list(const std::string& request);
     public:
         function_handler(webview::webview& window, mail::mail_service& mail_service, app::config::service& config_store);
     };

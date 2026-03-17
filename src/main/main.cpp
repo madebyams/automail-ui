@@ -1,6 +1,7 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/basic_file_sink.h>
+#include <SQLiteCpp/SQLiteCpp.h>
 
 #include "config/config_service.hh"
 #include "frontend_server.hh"
@@ -23,7 +24,8 @@ int main() {
 
     spdlog::info("Starting automail ui...");
 
-    app::config::service config_service;
+    SQLite::Database db("cfg.db", SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+    app::config::service config_service(db);
     frontend_server frontend_server("frontend/dist/frontend/browser");
     const filesystem_service fs;
 
@@ -31,7 +33,8 @@ int main() {
     spdlog::debug("Config: {}", config.to_json());
 
     mail::mail_service mail_service_(
-        config_service
+        config_service,
+        db
     );
     gui::gui_t gui({
         .width = 600,

@@ -7,4 +7,5 @@ target_link_libraries(mail_service PUBLIC
     mailio::mailio
     spdlog::spdlog
     client_factory
+    SQLiteCpp
 )
