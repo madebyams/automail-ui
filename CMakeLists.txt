@@ -61,6 +61,9 @@ if(WIN32)
 
     set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
 
+    # Predictable filename for CI artifact upload: automail-ui-0.2.0-win64.exe
+    set(CPACK_PACKAGE_FILE_NAME "automail-ui-${PROJECT_VERSION}-win64")
+
     # Start Menu shortcut
     set(CPACK_PACKAGE_EXECUTABLES "automailer_ui" "Automail UI")
 

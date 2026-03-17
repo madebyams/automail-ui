@@ -4,29 +4,40 @@ stages:
   - release
 
 variables:
-  # Kaniko layer cache stored in the project registry
   CACHE_IMAGE: $CI_REGISTRY_IMAGE:buildcache
-  # Full image tag for this commit (used by the release pipeline)
-  IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+  IMAGE:       $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
 
-# ── Build – all non-tag commits (Debug, no push) ───────────────────────────────
-# Verifies the code compiles on every branch push without publishing an image.
-build:
-  stage: build
-  tags:
-    - amd64
+# ── Shared config ──────────────────────────────────────────────────────────────
+.kaniko:
+  tags: [amd64]
   image:
     name: gcr.io/kaniko-project/executor:v1.23.2-debug
     entrypoint: [""]
+  before_script:
+    - mkdir -p /kaniko/.docker
+    - |
+      echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(echo -n ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD} | base64)\"}}}" \
+        > /kaniko/.docker/config.json
+
+.windows:
+  tags: [win]
+  before_script:
+    - cd frontend
+    - npm ci
+    - npm run build
+    - cd ..
+    - conan profile detect --force
+
+# ─────────────────────────── DEBUG BUILDS (all non-tag commits) ───────────────
+
+build-linux:
+  extends: .kaniko
+  stage: build
   rules:
     - if: $CI_COMMIT_TAG
       when: never
     - when: always
   script:
-    - mkdir -p /kaniko/.docker
-    - |
-      echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(echo -n ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD} | base64)\"}}}" \
-        > /kaniko/.docker/config.json
     - |
       /kaniko/executor \
         --context           "${CI_PROJECT_DIR}" \
@@ -39,21 +50,28 @@ build:
         --compressed-caching=false \
         --single-snapshot
 
-# ── Build Release – tags only (Release, pushes image) ─────────────────────────
-build-release:
+build-windows:
+  extends: .windows
   stage: build
-  tags:
-    - amd64
-  image:
-    name: gcr.io/kaniko-project/executor:v1.23.2-debug
-    entrypoint: [""]
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
+    - when: always
+  script:
+    - cmake -S . -B build
+        -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=conan_provider.cmake
+        -DCMAKE_BUILD_TYPE=Debug
+        -G "Visual Studio 17 2022"
+    - cmake --build build --config Debug
+
+# ─────────────────────────── RELEASE BUILDS (tags only) ───────────────────────
+
+build-release-linux:
+  extends: .kaniko
+  stage: build
   rules:
     - if: $CI_COMMIT_TAG
   script:
-    - mkdir -p /kaniko/.docker
-    - |
-      echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(echo -n ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD} | base64)\"}}}" \
-        > /kaniko/.docker/config.json
     - |
       /kaniko/executor \
         --context           "${CI_PROJECT_DIR}" \
@@ -66,57 +84,90 @@ build-release:
         --compressed-caching=false \
         --single-snapshot
 
-# ── Extract – tags only ────────────────────────────────────────────────────────
-# Pulls the Release binary out of the image without a Docker daemon.
-extract:
+build-release-windows:
+  extends: .windows
+  stage: build
+  rules:
+    - if: $CI_COMMIT_TAG
+  script:
+    - cmake -S . -B build
+        -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=conan_provider.cmake
+        -DCMAKE_BUILD_TYPE=Release
+        -G "Visual Studio 17 2022"
+    - cmake --build build --config Release
+    - cpack --config build/CPackConfig.cmake -C Release
+  artifacts:
+    name: "automail-ui-$CI_COMMIT_TAG-win64"
+    paths:
+      - automail-ui-*-win64.exe
+    expire_in: 90 days
+
+# ─────────────────────────── EXTRACT (tags only) ──────────────────────────────
+
+extract-linux:
   stage: extract
-  tags:
-    - amd64
+  tags: [amd64]
   image:
     name: gcr.io/go-containerregistry/crane:debug
     entrypoint: [""]
   rules:
     - if: $CI_COMMIT_TAG
   needs:
-    - job: build-release
+    - job: build-release-linux
   script:
     - crane auth login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    # Export image filesystem as a tar stream, extract just the binary.
-    # /app/automail_ui inside the image → app/automail_ui in the tar → ./automail_ui here.
     - crane export "${IMAGE}" - | tar --strip-components=1 -xf - app/automail_ui
   artifacts:
-    name: "automail_ui-$CI_COMMIT_TAG"
+    name: "automail_ui-$CI_COMMIT_TAG-linux"
     paths:
       - automail_ui
     expire_in: 90 days
 
-# ── Release – tags only ────────────────────────────────────────────────────────
-# Uploads the binary as a Generic Package and creates a GitLab Release entry.
+# ─────────────────────────── RELEASE (tags only) ──────────────────────────────
+
 release:
   stage: release
-  tags:
-    - amd64
+  tags: [amd64]
   image: curlimages/curl:latest
   rules:
     - if: $CI_COMMIT_TAG
   needs:
-    - job: extract
+    - job: extract-linux
+      artifacts: true
+    - job: build-release-windows
       artifacts: true
   script:
+    # Upload Linux binary
     - |
       curl --fail --request PUT \
            --header "JOB-TOKEN: $CI_JOB_TOKEN" \
            --upload-file automail_ui \
            "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/automail_ui/${CI_COMMIT_TAG}/automail_ui"
+    # Upload Windows installer
+    - INSTALLER=$(ls automail-ui-*-win64.exe | head -1)
+    - |
+      curl --fail --request PUT \
+           --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+           --upload-file "${INSTALLER}" \
+           "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/automail_ui/${CI_COMMIT_TAG}/automail-ui-win64.exe"
+    # Create GitLab Release
     - |
       curl --fail --request POST \
            --header "JOB-TOKEN: $CI_JOB_TOKEN" \
            --header "Content-Type: application/json" \
            --data "{\"tag_name\":\"${CI_COMMIT_TAG}\",\"name\":\"Automail UI ${CI_COMMIT_TAG}\",\"description\":\"Automated release for ${CI_COMMIT_TAG}\"}" \
            "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/releases"
+    # Attach Linux binary
     - |
       curl --fail --request POST \
            --header "JOB-TOKEN: $CI_JOB_TOKEN" \
            --header "Content-Type: application/json" \
            --data "{\"name\":\"automail_ui (Linux x86_64)\",\"url\":\"${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/automail_ui/${CI_COMMIT_TAG}/automail_ui\",\"link_type\":\"package\"}" \
+           "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/releases/${CI_COMMIT_TAG}/assets/links"
+    # Attach Windows installer
+    - |
+      curl --fail --request POST \
+           --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+           --header "Content-Type: application/json" \
+           --data "{\"name\":\"Automail UI Installer (Windows x64)\",\"url\":\"${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/automail_ui/${CI_COMMIT_TAG}/automail-ui-win64.exe\",\"link_type\":\"package\"}" \
            "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/releases/${CI_COMMIT_TAG}/assets/links"
