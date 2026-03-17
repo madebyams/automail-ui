@@ -59,7 +59,11 @@ build-windows:
       when: never
     - when: always
   script:
-    - cmake -S . -B build -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=conan_provider.cmake -DCMAKE_BUILD_TYPE=Debug -G "Visual Studio 17 2022"
+    - |
+      cmake -S . -B build `
+        "-DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=conan_provider.cmake" `
+        -DCMAKE_BUILD_TYPE=Debug `
+        -G "Visual Studio 17 2022"
     - cmake --build build --config Debug
 
 # ─────────────────────────── RELEASE BUILDS (tags only) ───────────────────────
@@ -88,7 +92,11 @@ build-release-windows:
   rules:
     - if: $CI_COMMIT_TAG
   script:
-    - cmake -S . -B build -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=conan_provider.cmake -DCMAKE_BUILD_TYPE=Release -G "Visual Studio 17 2022"
+    - |
+      cmake -S . -B build `
+        "-DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=conan_provider.cmake" `
+        -DCMAKE_BUILD_TYPE=Release `
+        -G "Visual Studio 17 2022"
     - cmake --build build --config Release
     - cpack --config build/CPackConfig.cmake -C Release
   artifacts:
