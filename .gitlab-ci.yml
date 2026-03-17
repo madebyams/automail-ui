@@ -21,8 +21,13 @@ variables:
 
 .windows:
   tags: [win]
+  timeout: 2h
   variables:
-    CONAN_HOME: 'C:\conan'
+    CONAN_HOME: '$CI_PROJECT_DIR/.conan'
+  cache:
+    key: conan-windows-v1
+    paths:
+      - .conan/p/
   before_script:
     - cd frontend
     - npm ci
