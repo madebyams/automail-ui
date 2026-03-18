@@ -21,7 +21,7 @@ variables:
 
 .windows:
   tags: [win]
-  timeout: 2h
+  timeout: 3h
   variables:
     CONAN_HOME: 'C:\conan'
   cache:
