@@ -1,6 +1,8 @@
+.idea
 .claude
 .qtcreator
 build
 cmake-build-debug-visual-studio
 main.exe
 config.yml
+config.db
