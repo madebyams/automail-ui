@@ -40,7 +40,7 @@ variables:
 build-frontend:
   stage: prepare
   tags: [amd64]
-  image: node:lts
+  image: node:lts-alpine
   rules:
     - when: always
   cache:
