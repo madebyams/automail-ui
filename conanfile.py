@@ -21,3 +21,7 @@ class ConanApplication(ConanFile):
         requirements = self.conan_data.get('requirements', [])
         for requirement in requirements:
             self.requires(requirement)
+        # OpenSSL 3.4+ uses SIO_UDP_NETRESET in its QUIC code, unavailable in MinGW headers.
+        # Override to 3.3.2 for MinGW cross-compilation targets.
+        if self.settings.os == "Windows" and self.settings.compiler == "gcc":
+            self.requires("openssl/3.3.2", override=True)
