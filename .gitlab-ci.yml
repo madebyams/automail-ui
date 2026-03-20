@@ -1,4 +1,5 @@
 stages:
+  - prepare
   - build
   - extract
   - release
@@ -30,14 +31,30 @@ variables:
     paths:
       - .conan/p/
   before_script:
-    - apt-get update -qq && apt-get install -y -qq nodejs npm
-    - cd frontend
-    - npm ci
-    - npm run build
-    - cd ..
     - conan profile detect --force
     - sed -i 's/compiler.cppstd=[0-9]*/compiler.cppstd=20/' "$CONAN_HOME/profiles/default"
     - conan create webview-recipe/ --version 0.12.0 --build=missing
+
+# ─────────────────────────── FRONTEND (all commits) ───────────────────────────
+
+build-frontend:
+  stage: prepare
+  tags: [amd64]
+  image: node:lts
+  rules:
+    - when: always
+  cache:
+    key: npm-$CI_COMMIT_REF_SLUG
+    paths:
+      - frontend/node_modules/
+  script:
+    - cd frontend
+    - npm ci
+    - npm run build
+  artifacts:
+    paths:
+      - frontend/dist/
+    expire_in: 1 day
 
 # ─────────────────────────── DEBUG BUILDS (all non-tag commits) ───────────────
 
@@ -68,6 +85,9 @@ build-windows:
     - if: $CI_COMMIT_TAG
       when: never
     - when: always
+  needs:
+    - job: build-frontend
+      artifacts: true
   script:
     - |
       cmake -S . -B build \
@@ -101,6 +121,9 @@ build-release-windows:
   stage: build
   rules:
     - if: $CI_COMMIT_TAG
+  needs:
+    - job: build-frontend
+      artifacts: true
   script:
     - |
       cmake -S . -B build \
