@@ -3,7 +3,7 @@
 
 requirements:
   - "sqlitecpp/3.3.3"
-  - "cpp-httplib/0.30.1"
+  - "cpp-httplib/0.15.3"
   - "yaml-cpp/0.8.0"
   - "spdlog/1.17.0"
   - "fmt/12.1.0"
