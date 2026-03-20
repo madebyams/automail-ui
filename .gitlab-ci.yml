@@ -34,6 +34,9 @@ variables:
     # Build profile: native Linux GCC (used to run build tools)
     - conan profile detect --force
     - sed -i 's/compiler.cppstd=[a-z0-9]*/compiler.cppstd=20/' "$CONAN_HOME/profiles/default"
+    # conan_provider.cmake bases the host profile on 'default', so options
+    # that must survive the CMake build step must live in the default profile.
+    - printf '\n[options]\nboost/*:without_process=True\n' >> "$CONAN_HOME/profiles/default"
     # Host profile: Windows target via MinGW cross-compiler
     - |
       MINGW_VER=$(x86_64-w64-mingw32-g++ -dumpversion | sed 's/[^0-9].*//')
