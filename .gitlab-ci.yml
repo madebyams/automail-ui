@@ -44,7 +44,7 @@ variables:
       printf "boost/*:extra_b2_flags=define=_WIN32_WINNT=0x0601\n" >> "$CONAN_HOME/profiles/default"
     # Host profile: Windows target via MinGW cross-compiler
     - |
-      MINGW_VER=$(x86_64-w64-mingw32-g++ -dumpversion | sed 's/[^0-9].*//')
+      MINGW_VER=$(x86_64-w64-mingw32-g++-posix -dumpversion | sed 's/[^0-9].*//')
       cat > "$CONAN_HOME/profiles/windows-mingw" <<EOF
       [settings]
       os=Windows
@@ -76,8 +76,8 @@ variables:
       boost/*:extra_b2_flags=define=_WIN32_WINNT=0x0601
 
       [buildenv]
-      CC=x86_64-w64-mingw32-gcc
-      CXX=x86_64-w64-mingw32-g++
+      CC=x86_64-w64-mingw32-gcc-posix
+      CXX=x86_64-w64-mingw32-g++-posix
       RC=x86_64-w64-mingw32-windres
       AR=x86_64-w64-mingw32-ar
       STRIP=x86_64-w64-mingw32-strip
@@ -145,8 +145,8 @@ build-windows:
         "-DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=conan_provider.cmake" \
         -DCMAKE_BUILD_TYPE=Debug \
         -DCMAKE_SYSTEM_NAME=Windows \
-        -DCMAKE_C_COMPILER=x86_64-w64-mingw32-gcc \
-        -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++ \
+        -DCMAKE_C_COMPILER=x86_64-w64-mingw32-gcc-posix \
+        -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++-posix \
         -DCMAKE_RC_COMPILER=x86_64-w64-mingw32-windres \
         -G "Unix Makefiles"
     - cmake --build build
@@ -186,8 +186,8 @@ build-release-windows:
         "-DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=conan_provider.cmake" \
         -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_SYSTEM_NAME=Windows \
-        -DCMAKE_C_COMPILER=x86_64-w64-mingw32-gcc \
-        -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++ \
+        -DCMAKE_C_COMPILER=x86_64-w64-mingw32-gcc-posix \
+        -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++-posix \
         -DCMAKE_RC_COMPILER=x86_64-w64-mingw32-windres \
         -G "Unix Makefiles"
     - cmake --build build
