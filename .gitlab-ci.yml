@@ -36,7 +36,7 @@ variables:
     - sed -i 's/compiler.cppstd=[a-z0-9]*/compiler.cppstd=20/' "$CONAN_HOME/profiles/default"
     # Host profile: Windows target via MinGW cross-compiler
     - |
-      MINGW_VER=$(x86_64-w64-mingw32-g++ -dumpversion | cut -d. -f1)
+      MINGW_VER=$(x86_64-w64-mingw32-g++ -dumpversion | sed 's/[^0-9].*//')
       cat > "$CONAN_HOME/profiles/windows-mingw" <<EOF
       [settings]
       os=Windows
