@@ -4,7 +4,7 @@ project(automail_ui VERSION 0.2.0)
 set(CMAKE_CXX_STANDARD 20)
 
 if(WIN32)
-    add_compile_definitions(_WIN32_WINNT=0x0A00)  # Windows 10+
+    add_compile_definitions(_WIN32_WINNT=0x0601)  # Windows 7+ (avoids GetAddrInfoExCancel in old MinGW headers)
 endif()
 
 # Embed the Angular dist bundle into the binary on all platforms.
