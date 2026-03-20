@@ -31,9 +31,30 @@ variables:
     paths:
       - .conan/p/
   before_script:
+    # Build profile: native Linux GCC (used to run build tools)
     - conan profile detect --force
     - sed -i 's/compiler.cppstd=[a-z0-9]*/compiler.cppstd=20/' "$CONAN_HOME/profiles/default"
+    # Host profile: Windows target via MinGW cross-compiler
+    - |
+      MINGW_VER=$(x86_64-w64-mingw32-g++ -dumpversion | cut -d. -f1)
+      cat > "$CONAN_HOME/profiles/windows-mingw" <<EOF
+      [settings]
+      os=Windows
+      arch=x86_64
+      compiler=gcc
+      compiler.version=$MINGW_VER
+      compiler.cppstd=20
+      compiler.libcxx=libstdc++11
+
+      [buildenv]
+      CC=x86_64-w64-mingw32-gcc
+      CXX=x86_64-w64-mingw32-g++
+      RC=x86_64-w64-mingw32-windres
+      AR=x86_64-w64-mingw32-ar
+      STRIP=x86_64-w64-mingw32-strip
+      EOF
     - conan create webview-recipe/ --version 0.12.0 --build=missing
+        --profile:build=default --profile:host=windows-mingw --test-folder=""
 
 # ─────────────────────────── FRONTEND (all commits) ───────────────────────────
 
@@ -94,6 +115,10 @@ build-windows:
       cmake -S . -B build \
         "-DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=conan_provider.cmake" \
         -DCMAKE_BUILD_TYPE=Debug \
+        -DCMAKE_SYSTEM_NAME=Windows \
+        -DCMAKE_C_COMPILER=x86_64-w64-mingw32-gcc \
+        -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++ \
+        -DCMAKE_RC_COMPILER=x86_64-w64-mingw32-windres \
         -G Ninja
     - cmake --build build
 
@@ -131,6 +156,10 @@ build-release-windows:
       cmake -S . -B build \
         "-DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=conan_provider.cmake" \
         -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_SYSTEM_NAME=Windows \
+        -DCMAKE_C_COMPILER=x86_64-w64-mingw32-gcc \
+        -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++ \
+        -DCMAKE_RC_COMPILER=x86_64-w64-mingw32-windres \
         -G Ninja
     - cmake --build build
     - cpack --config build/CPackConfig.cmake
