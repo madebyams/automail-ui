@@ -61,6 +61,7 @@ build-frontend:
 build-linux:
   extends: .kaniko
   stage: build
+  dependencies: []
   rules:
     - if: $CI_COMMIT_TAG
       when: never
@@ -101,6 +102,7 @@ build-windows:
 build-release-linux:
   extends: .kaniko
   stage: build
+  dependencies: []
   rules:
     - if: $CI_COMMIT_TAG
   script:
