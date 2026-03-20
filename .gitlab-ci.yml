@@ -46,6 +46,9 @@ variables:
       compiler.cppstd=20
       compiler.libcxx=libstdc++11
 
+      [options]
+      boost/*:without_process=True
+
       [buildenv]
       CC=x86_64-w64-mingw32-gcc
       CXX=x86_64-w64-mingw32-g++
