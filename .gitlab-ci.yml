@@ -119,7 +119,7 @@ build-windows:
         -DCMAKE_C_COMPILER=x86_64-w64-mingw32-gcc \
         -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++ \
         -DCMAKE_RC_COMPILER=x86_64-w64-mingw32-windres \
-        -G Ninja
+        -G "Unix Makefiles"
     - cmake --build build
 
 # ─────────────────────────── RELEASE BUILDS (tags only) ───────────────────────
@@ -160,7 +160,7 @@ build-release-windows:
         -DCMAKE_C_COMPILER=x86_64-w64-mingw32-gcc \
         -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++ \
         -DCMAKE_RC_COMPILER=x86_64-w64-mingw32-windres \
-        -G Ninja
+        -G "Unix Makefiles"
     - cmake --build build
     - cpack --config build/CPackConfig.cmake
   artifacts:
