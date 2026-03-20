@@ -41,6 +41,7 @@ variables:
       for opt in cobalt context contract coroutine fiber graph json locale log math nowide process serialization stacktrace test type_erasure url wave; do
         printf "boost/*:without_${opt}=True\n" >> "$CONAN_HOME/profiles/default"
       done
+      printf "boost/*:extra_b2_flags=define=_WIN32_WINNT=0x0601\n" >> "$CONAN_HOME/profiles/default"
     # Host profile: Windows target via MinGW cross-compiler
     - |
       MINGW_VER=$(x86_64-w64-mingw32-g++ -dumpversion | sed 's/[^0-9].*//')
@@ -72,6 +73,7 @@ variables:
       boost/*:without_type_erasure=True
       boost/*:without_url=True
       boost/*:without_wave=True
+      boost/*:extra_b2_flags=define=_WIN32_WINNT=0x0601
 
       [buildenv]
       CC=x86_64-w64-mingw32-gcc
