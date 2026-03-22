@@ -124,6 +124,27 @@ class WebviewConan(ConanFile):
                  src=webview2_include,
                  dst=os.path.join(self.package_folder, "include"))
 
+            # WebView2.h transitively includes EventToken.h, which is a Windows
+            # SDK WinRT header absent from both the WebView2 NuGet package and
+            # MinGW-w64 cross-toolchains on Linux.  Write a minimal stub so the
+            # header chain resolves without a full Windows SDK installation.
+            event_token_dst = os.path.join(self.package_folder, "include", "EventToken.h")
+            if not os.path.isfile(event_token_dst):
+                with open(event_token_dst, "w") as f:
+                    f.write(
+                        "#pragma once\n"
+                        "/* Minimal EventToken.h stub for cross-compilation without the Windows SDK */\n"
+                        "#ifdef __cplusplus\n"
+                        'extern "C" {\n'
+                        "#endif\n"
+                        "typedef struct EventRegistrationToken {\n"
+                        "    __int64 value;\n"
+                        "} EventRegistrationToken;\n"
+                        "#ifdef __cplusplus\n"
+                        "}\n"
+                        "#endif\n"
+                    )
+
         if self.options.build_library:
             cmake = CMake(self)
             cmake.install()
