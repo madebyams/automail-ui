@@ -256,14 +256,18 @@ release:
            --header "JOB-TOKEN: $CI_JOB_TOKEN" \
            --upload-file automail_ui \
            "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/automail_ui/${CI_COMMIT_TAG}/automail_ui"
-    # Upload Windows installer
+    # Upload Windows binary
     - INSTALLER=$(ls automail-ui-*-win64.exe | head -1)
     - |
       curl --fail --request PUT \
            --header "JOB-TOKEN: $CI_JOB_TOKEN" \
            --upload-file "${INSTALLER}" \
            "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/automail_ui/${CI_COMMIT_TAG}/automail-ui-win64.exe"
-    # Create GitLab Release
+    # Delete existing release if present (ignore errors), then create fresh
+    - |
+      curl --request DELETE \
+           --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+           "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/releases/${CI_COMMIT_TAG}" || true
     - |
       curl --fail --request POST \
            --header "JOB-TOKEN: $CI_JOB_TOKEN" \
