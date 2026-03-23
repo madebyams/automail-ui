@@ -1,5 +1,6 @@
 stages:
   - prepare
+  - test
   - build
   - extract
   - release
@@ -106,6 +107,47 @@ build-frontend:
       - frontend/dist/
     expire_in: 1 day
 
+# ─────────────────────────── TESTS (all commits) ─────────────────────────────
+
+test-frontend:
+  stage: test
+  tags: [amd64]
+  image: node:lts-alpine
+  rules:
+    - when: always
+  cache:
+    key: npm-$CI_COMMIT_REF_SLUG
+    paths:
+      - frontend/node_modules/
+  script:
+    - cd frontend
+    - npm ci
+    - npm run test -- --run
+
+test-backend:
+  stage: test
+  tags: [amd64]
+  image: conanio/gcc13:latest
+  variables:
+    CONAN_HOME: '$CI_PROJECT_DIR/.conan'
+  cache:
+    key: conan-linux-test-v1
+    paths:
+      - .conan/p/
+  rules:
+    - when: always
+  before_script:
+    - conan profile detect --force
+    - sed -i 's/compiler.cppstd=[a-z0-9]*/compiler.cppstd=20/' "$CONAN_HOME/profiles/default"
+  script:
+    - |
+      cmake -S . -B build \
+        "-DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=conan_provider.cmake" \
+        -DCMAKE_BUILD_TYPE=Debug \
+        -DBUILD_MAIN_APP=OFF
+    - cmake --build build --target backend_tests
+    - ctest --test-dir build --output-on-failure
+
 # ─────────────────────────── DEBUG BUILDS (all non-tag commits) ───────────────
 
 build-linux:
@@ -139,6 +181,8 @@ build-windows:
   needs:
     - job: build-frontend
       artifacts: true
+    - job: test-frontend
+    - job: test-backend
   script:
     - |
       cmake -S . -B build \
@@ -180,6 +224,8 @@ build-release-windows:
   needs:
     - job: build-frontend
       artifacts: true
+    - job: test-frontend
+    - job: test-backend
   script:
     - |
       cmake -S . -B build \

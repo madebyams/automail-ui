@@ -10,14 +10,29 @@ describe('App', () => {
 
   it('should create the app', () => {
     const fixture = TestBed.createComponent(App);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
+    expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('should render title', async () => {
+  it('defaults to senders view', () => {
     const fixture = TestBed.createComponent(App);
+    expect(fixture.componentInstance['view']()).toBe('senders');
+  });
+
+  it('switches to settings view when hasConfig returns false', async () => {
+    (window as any).hasConfig = vi.fn().mockResolvedValue(false);
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
     await fixture.whenStable();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, frontend');
+    expect(fixture.componentInstance['view']()).toBe('settings');
+    delete (window as any).hasConfig;
+  });
+
+  it('stays on senders view when hasConfig returns true', async () => {
+    (window as any).hasConfig = vi.fn().mockResolvedValue(true);
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(fixture.componentInstance['view']()).toBe('senders');
+    delete (window as any).hasConfig;
   });
 });
