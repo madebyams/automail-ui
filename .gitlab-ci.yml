@@ -191,6 +191,7 @@ build-release-windows:
         -DCMAKE_RC_COMPILER=x86_64-w64-mingw32-windres \
         -G "Unix Makefiles"
     - cmake --build build
+    - apt-get install -y --no-install-recommends nsis
     - cpack --config build/CPackConfig.cmake
   artifacts:
     name: "automail-ui-$CI_COMMIT_TAG-win64"
