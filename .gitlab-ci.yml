@@ -219,6 +219,23 @@ extract-linux:
       - automail_ui
     expire_in: 90 days
 
+extract-windows:
+  stage: extract
+  tags: [amd64]
+  image: alpine:latest
+  rules:
+    - if: $CI_COMMIT_TAG
+  needs:
+    - job: build-release-windows
+      artifacts: true
+  script:
+    - ls automail-ui-*-win64.exe
+  artifacts:
+    name: "automail-ui-$CI_COMMIT_TAG-win64"
+    paths:
+      - automail-ui-*-win64.exe
+    expire_in: 90 days
+
 # ─────────────────────────── RELEASE (tags only) ──────────────────────────────
 
 release:
@@ -230,7 +247,7 @@ release:
   needs:
     - job: extract-linux
       artifacts: true
-    - job: build-release-windows
+    - job: extract-windows
       artifacts: true
   script:
     # Upload Linux binary
