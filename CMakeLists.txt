@@ -48,32 +48,3 @@ find_package(SQLiteCpp REQUIRED)
 include_directories(include)
 add_subdirectory(src)
 
-if(WIN32)
-    set(CPACK_GENERATOR                        "NSIS")
-    set(CPACK_PACKAGE_NAME                     "Automail UI")
-    set(CPACK_PACKAGE_VENDOR                   "anotherSimpleCoder")
-    set(CPACK_PACKAGE_DESCRIPTION_SUMMARY      "Bulk-delete emails from specific senders")
-    set(CPACK_PACKAGE_INSTALL_DIRECTORY        "Automail UI")
-    set(CPACK_RESOURCE_FILE_LICENSE            "${CMAKE_SOURCE_DIR}/LICENSE")
-
-    set(CPACK_NSIS_MUI_ICON    "${CMAKE_SOURCE_DIR}/frontend/public/favicon.ico")
-    set(CPACK_NSIS_MUI_UNIICON "${CMAKE_SOURCE_DIR}/frontend/public/favicon.ico")
-
-    set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
-
-    # Predictable filename for CI artifact upload: automail-ui-0.2.0-win64.exe
-    set(CPACK_PACKAGE_FILE_NAME "automail-ui-${PROJECT_VERSION}-win64")
-
-    # Start Menu shortcut
-    set(CPACK_PACKAGE_EXECUTABLES "automailer_ui" "Automail UI")
-
-    # Desktop shortcut (created/removed by the NSIS installer)
-    set(CPACK_NSIS_CREATE_ICONS_EXTRA
-        "CreateShortcut '$DESKTOP\\\\Automail UI.lnk' '$INSTDIR\\\\automailer_ui.exe'"
-    )
-    set(CPACK_NSIS_DELETE_ICONS_EXTRA
-        "Delete '$DESKTOP\\\\Automail UI.lnk'"
-    )
-
-    include(CPack)
-endif()

@@ -23,9 +23,6 @@ target_link_libraries(automailer_ui
     SQLiteCpp
 )
 
-if(WIN32)
-    install(TARGETS automailer_ui RUNTIME DESTINATION .)
-endif()
 
 if(MINGW)
     target_link_options(automailer_ui PRIVATE
