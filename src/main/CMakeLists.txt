@@ -26,3 +26,11 @@ target_link_libraries(automailer_ui
 if(WIN32)
     install(TARGETS automailer_ui RUNTIME DESTINATION .)
 endif()
+
+if(MINGW)
+    target_link_options(automailer_ui PRIVATE
+        -static-libgcc
+        -static-libstdc++
+        -Wl,-Bstatic,-lwinpthread,-Bdynamic
+    )
+endif()
