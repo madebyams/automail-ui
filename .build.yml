@@ -22,7 +22,7 @@ tasks:
       cd "$HOME/automail-ui/frontend"
       npm ci
       npm run build
-      npm run test -- --run
+      npm run test -- --watch=false
   - test-backend: |
       cd "$HOME/automail-ui"
       python3 -m pip install --break-system-packages --user --no-cache-dir conan
