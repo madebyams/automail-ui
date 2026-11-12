@@ -1,0 +1,109 @@
+image: debian/stable
+packages:
+  - build-essential
+  - cmake
+  - ninja-build
+  - python3
+  - python3-pip
+  - python3-venv
+  - nodejs
+  - npm
+  - git
+  - pkg-config
+  - libssl-dev
+  - libgtk-3-dev
+  - libwebkit2gtk-4.1-dev
+  - g++-mingw-w64-x86-64-posix
+  - gcc-mingw-w64-x86-64-posix
+sources:
+  - https://git.sr.ht/~itsams_wav/automail-ui
+tasks:
+  - build-and-test-frontend: |
+      cd "$HOME/automail-ui/frontend"
+      npm ci
+      npm run build
+      npm run test -- --run
+  - test-backend: |
+      cd "$HOME/automail-ui"
+      python3 -m pip install --break-system-packages --user --no-cache-dir conan
+      export PATH="$HOME/.local/bin:$PATH"
+      export CONAN_HOME="$HOME/.conan2"
+      conan profile detect --force
+      sed -i 's/compiler.cppstd=[a-z0-9]*/compiler.cppstd=20/' "$CONAN_HOME/profiles/default"
+      conan create webview-recipe/ --version 0.12.0 --test-folder ""
+      cmake -S . -B build-tests \
+        -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=conan_provider.cmake \
+        -DCMAKE_BUILD_TYPE=Debug \
+        -DBUILD_MAIN_APP=OFF
+      cmake --build build-tests --target backend_tests --parallel
+      ctest --test-dir build-tests --output-on-failure
+  - build-linux: |
+      cd "$HOME/automail-ui"
+      export PATH="$HOME/.local/bin:$PATH"
+      export CONAN_HOME="$HOME/.conan2"
+      conan create webview-recipe/ --version 0.12.0 --test-folder ""
+      cmake -S . -B build \
+        -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=conan_provider.cmake \
+        -DCMAKE_BUILD_TYPE=Release -G Ninja
+      cmake --build build --parallel
+      cp build/src/main/automailer_ui automail_ui
+  - build-windows: |
+      cd "$HOME/automail-ui"
+      export PATH="$HOME/.local/bin:$PATH"
+      export CONAN_HOME="$HOME/.conan2"
+      conan profile detect --force
+      sed -i 's/compiler.cppstd=[a-z0-9]*/compiler.cppstd=20/' "$CONAN_HOME/profiles/default"
+      printf '\n[options]\n' >> "$CONAN_HOME/profiles/default"
+      for opt in cobalt context contract coroutine fiber graph json locale log math nowide process serialization stacktrace test type_erasure url wave; do
+        printf "boost/*:without_${opt}=True\n" >> "$CONAN_HOME/profiles/default"
+      done
+      printf "boost/*:extra_b2_flags=define=_WIN32_WINNT=0x0601\n" >> "$CONAN_HOME/profiles/default"
+      MINGW_VER="$(x86_64-w64-mingw32-g++-posix -dumpversion | sed 's/[^0-9].*//')"
+      cat > "$CONAN_HOME/profiles/windows-mingw" <<EOF
+      [settings]
+      os=Windows
+      arch=x86_64
+      compiler=gcc
+      compiler.version=$MINGW_VER
+      compiler.cppstd=20
+      compiler.libcxx=libstdc++11
+      [options]
+      boost/*:without_cobalt=True
+      boost/*:without_context=True
+      boost/*:without_contract=True
+      boost/*:without_coroutine=True
+      boost/*:without_fiber=True
+      boost/*:without_graph=True
+      boost/*:without_json=True
+      boost/*:without_locale=True
+      boost/*:without_log=True
+      boost/*:without_math=True
+      boost/*:without_nowide=True
+      boost/*:without_process=True
+      boost/*:without_serialization=True
+      boost/*:without_stacktrace=True
+      boost/*:without_test=True
+      boost/*:without_type_erasure=True
+      boost/*:without_url=True
+      boost/*:without_wave=True
+      boost/*:extra_b2_flags=define=_WIN32_WINNT=0x0601
+      [buildenv]
+      CC=x86_64-w64-mingw32-gcc-posix
+      CXX=x86_64-w64-mingw32-g++-posix
+      RC=x86_64-w64-mingw32-windres
+      AR=x86_64-w64-mingw32-ar
+      STRIP=x86_64-w64-mingw32-strip
+      EOF
+      conan create webview-recipe/ --version 0.12.0 --build=missing \
+        --profile:build=default --profile:host=windows-mingw --test-folder ""
+      cmake -S . -B build-windows \
+        -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=conan_provider.cmake \
+        -DCMAKE_BUILD_TYPE=Release -DCMAKE_SYSTEM_NAME=Windows \
+        -DCMAKE_C_COMPILER=x86_64-w64-mingw32-gcc-posix \
+        -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++-posix \
+        -DCMAKE_RC_COMPILER=x86_64-w64-mingw32-windres -G "Unix Makefiles"
+      cmake --build build-windows --parallel
+      cp build-windows/src/main/automailer_ui.exe automail-ui-win64.exe
+artifacts:
+  - automail-ui/automail_ui
+  - automail-ui/automail-ui-win64.exe
